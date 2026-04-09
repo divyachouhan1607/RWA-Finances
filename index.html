@@ -661,7 +661,8 @@ html{scrollbar-color:var(--bd) var(--ca);scrollbar-width:thin}
     <div style="padding:30px 24px">
       <div style="font-size:2.5rem;margin-bottom:12px">⚠️</div>
       <h3 style="font-family:'Playfair Display',serif;font-size:1.2rem;margin-bottom:8px;color:var(--r)">Delete ALL Data?</h3>
-      <p style="font-size:0.9rem;color:var(--t2);margin-bottom:20px">All transactions, opening balance, and backup history will be permanently deleted. Make sure you have a backup!</p>
+      <p style="font-size:0.9rem;color:var(--t2);margin-bottom:12px">All transactions, opening balance, and backup history will be permanently deleted.</p>
+      <p style="font-size:0.82rem;color:var(--b);margin-bottom:20px;background:var(--bp);padding:8px 14px;border-radius:8px;font-weight:600">&#128190; A JSON backup will be auto-downloaded to your Downloads folder before deleting. You can restore from it anytime.</p>
       <div style="display:flex;gap:10px;justify-content:center">
         <button class="btn bd" onclick="confirmDelAll()" style="padding:10px 24px">Yes, Delete Everything</button>
         <button class="btn" onclick="cancelDelAll()" style="padding:10px 24px;background:var(--ca);border:2px solid var(--bd);color:var(--t2)">Cancel</button>
@@ -1047,7 +1048,10 @@ sv(TX);uD();xRs();toast('\u2705 Merged! '+TX.length+' total records')}
 function xRs(){pR=null;document.getElementById('rsP').style.display='none'}
 function delAll(){document.getElementById('delAllConfirmModal').classList.add('on')}
 function cancelDelAll(){document.getElementById('delAllConfirmModal').classList.remove('on')}
-function confirmDelAll(){TX=[];sv(TX);S.del(OK);S.del(BK);uD();uBk();document.getElementById('delAllConfirmModal').classList.remove('on');toast('All deleted')}
+function confirmDelAll(){
+  // Auto-backup before deleting
+  if(TX.length){dlJ();toast('Backup downloaded! Deleting data...')}
+  setTimeout(function(){TX=[];sv(TX);S.del(OK);S.del(BK);uD();uBk();document.getElementById('delAllConfirmModal').classList.remove('on');toast('All data deleted. Backup saved to Downloads.')},500)}
 
 function gGU(){return S.get(GK)||''}
 function uGS(s,t){var d=document.getElementById('gsD'),tx=document.getElementById('gsT'),a=document.getElementById('gsA'),b=document.getElementById('gsB'),u=document.getElementById('gsU');
