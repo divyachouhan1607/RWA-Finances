@@ -528,10 +528,26 @@ html{scrollbar-color:var(--bd) var(--ca);scrollbar-width:thin}
       </div>
     </div>
     <div class="fc bkc" style="margin:0 0 16px"><div class="bkh"><div class="bki" style="background:var(--pp);color:var(--p)">&#128229;</div><div><h3>Download Backup</h3><p>Save as JSON file for restoring later.</p></div></div><div class="br"><button class="btn bp bl" onclick="dlJ()">&#128229; Download JSON Backup</button></div></div>
-    <div class="fc bkc" style="margin:16px 0"><div class="bkh"><div class="bki" style="background:#E8F5E9;color:#34A853">&#128202;</div><div><h3>Google Sheets Sync</h3><p>Auto-save to cloud for real-time backup.</p></div></div>
-      <div class="gss"><div class="gsd off" id="gsD"></div><span id="gsT">Not connected</span></div>
-      <div class="fg" style="margin:12px 0"><label>Web App URL</label><div style="display:flex;gap:8px"><input type="url" id="gsU" placeholder="https://script.google.com/macros/s/..." style="flex:1;padding:12px;border:2px solid var(--bd);border-radius:var(--rs);font-family:inherit;background:var(--ca)"><button class="btn bp" onclick="gsC()" id="gsB">Connect</button></div></div>
-      <div id="gsA" style="display:none"><div class="br"><button class="btn bp" onclick="gsSync()">&#9729;&#65039; Sync</button><button class="btn bo" onclick="gsLoad()">&#128229; Load</button><button class="btn bd" onclick="gsDC()">Disconnect</button></div></div></div>
+    <div class="fc bkc" style="margin:16px 0">
+      <div class="bkh"><div class="bki" style="background:var(--bp);color:var(--b)">&#128229;</div><div><h3>Export Data</h3><p>Export your records in different formats for viewing and sharing.</p></div></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-top:12px">
+        <button class="btn ba2 bl" onclick="expXL()" style="justify-content:center;flex-direction:column;gap:4px;padding:16px 12px">
+          <span style="font-size:1.5rem">&#128202;</span>
+          <span>Excel (.xlsx)</span>
+          <span style="font-size:.7rem;opacity:.7;font-weight:400">Microsoft Excel</span>
+        </button>
+        <button class="btn bl" onclick="expXL()" style="justify-content:center;flex-direction:column;gap:4px;padding:16px 12px;background:linear-gradient(135deg,#34A853,#0F9D58);color:#fff">
+          <span style="font-size:1.5rem">&#128214;</span>
+          <span>Google Sheets</span>
+          <span style="font-size:.7rem;opacity:.7;font-weight:400">Opens in Sheets</span>
+        </button>
+        <button class="btn bl" onclick="savePDF()" style="justify-content:center;flex-direction:column;gap:4px;padding:16px 12px;background:linear-gradient(135deg,var(--r),#7A5040);color:#fff">
+          <span style="font-size:1.5rem">&#128196;</span>
+          <span>PDF Report</span>
+          <span style="font-size:.7rem;opacity:.7;font-weight:400">With charts</span>
+        </button>
+      </div>
+    </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
       <div class="fc bkc" style="margin:0;border:2px dashed var(--bd)"><div class="bkh"><div class="bki" style="background:var(--rp);color:var(--r)">&#128260;</div><div><h3>Restore from Backup</h3><p>Select a JSON backup file to restore.</p></div></div>
         <div class="ra" onclick="document.getElementById('rsI').click()"><input type="file" id="rsI" accept=".json" style="display:none" onchange="hRs(event)"><div class="ui">&#128193;</div><p>Click to <strong>select file</strong></p></div>
