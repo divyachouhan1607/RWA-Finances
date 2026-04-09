@@ -262,6 +262,43 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--t);min-he
 .rec-panel.on{display:block;animation:recIn .3s ease}
 @keyframes recIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
 
+/* Welcome bar */
+.welcome-bar{background:var(--card);border-radius:var(--rd);padding:20px 24px;margin:20px 0 16px;box-shadow:var(--sh);display:flex;align-items:center;justify-content:space-between;gap:16px}
+.welcome-bar h2{font-family:'Playfair Display',serif;font-size:1.2rem;color:var(--t);margin-bottom:2px}
+.welcome-bar .wb-sub{font-size:.8rem;color:var(--t2)}
+.welcome-bar .wb-health{font-size:.78rem;padding:6px 14px;border-radius:20px;font-weight:600}
+.wb-health.good{background:#E8F5E9;color:#2D8B4E}
+.wb-health.warn{background:#FFF3E0;color:#E65100}
+.wb-health.bad{background:var(--dgp);color:var(--dg)}
+[data-theme="dark"] .wb-health.good{background:#1a2e1a;color:#4CAF50}
+[data-theme="dark"] .wb-health.warn{background:#2e2a1a;color:#FFA726}
+[data-theme="dark"] .wb-health.bad{background:#2a1a1a;color:#EF5350}
+
+/* Merged balance bar */
+.bal-bar{background:linear-gradient(135deg,#4A1520,#3A1018 50%,#5A3A20);color:#fff;border-radius:var(--rd);padding:18px 24px;margin:16px 0;display:flex;align-items:center;gap:16px;box-shadow:var(--sh);flex-wrap:wrap}
+.bal-section{flex:1;min-width:0}
+.bal-label{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;opacity:.7;margin-bottom:2px}
+.bal-value{font-family:'Playfair Display',serif;font-size:1.4rem;font-weight:700}
+.bal-arrow{font-size:1.5rem;opacity:.5;flex-shrink:0}
+.bal-edit-btn{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);color:#fff;padding:6px 14px;border-radius:8px;font-family:inherit;font-size:.78rem;font-weight:600;cursor:pointer;flex-shrink:0}
+.bal-formula{font-size:.72rem;opacity:.6;margin-top:4px}
+
+/* Gradient stat cards */
+.sc.in{background:linear-gradient(135deg,#f0faf4,#e0f5e8);border-left-color:#2D8B4E}
+.sc.ex{background:linear-gradient(135deg,#fdf2f0,#fce8e4);border-left-color:#C0392B}
+.sc.do{background:linear-gradient(135deg,#eef5fa,#e0eef5);border-left-color:var(--b)}
+.sc.ba{background:linear-gradient(135deg,#faf5ee,#f5ece0);border-left-color:var(--a)}
+[data-theme="dark"] .sc.in{background:linear-gradient(135deg,#1a2e1f,#16213e)}
+[data-theme="dark"] .sc.ex{background:linear-gradient(135deg,#2e1a1a,#16213e)}
+[data-theme="dark"] .sc.do{background:linear-gradient(135deg,#1a2a3e,#16213e)}
+[data-theme="dark"] .sc.ba{background:linear-gradient(135deg,#2e2a1a,#16213e)}
+.sc{cursor:pointer}
+.sc:hover{transform:translateY(-4px);box-shadow:var(--sl)}
+
+/* View all link */
+.view-all{display:inline-flex;align-items:center;gap:6px;font-size:.82rem;font-weight:600;color:var(--p);cursor:pointer;border:none;background:none;font-family:inherit;padding:4px 0;transition:.2s}
+.view-all:hover{gap:10px}
+
 /* Custom Scrollbar */
 ::-webkit-scrollbar{width:8px;height:8px}
 ::-webkit-scrollbar-track{background:var(--ca);border-radius:4px}
@@ -372,16 +409,37 @@ html{scrollbar-color:var(--bd) var(--ca);scrollbar-width:thin}
 <div class="mn">
 
 <div class="tc on show" id="tab-dashboard">
-  <div class="ob-bar"><div class="ob-l"><span class="ob-lb" id="obLabel">Opening Balance</span><span class="ob-v" id="obD">&#8377;0</span></div>
-    <button class="ob-eb" id="obEB" onclick="togOB()">&#9999;&#65039; Edit</button>
-    <div class="ob-ef" id="obEF" style="display:none"><input type="number" id="obI" placeholder="Amount" min="0"><button class="ob-sv" onclick="svOB()">Save</button><button class="ob-cn" onclick="togOB()">Cancel</button></div></div>
+  <!-- Welcome bar -->
+  <div class="welcome-bar" id="welcomeBar">
+    <div><h2 id="wbGreeting">Good Morning, ADOWA</h2><div class="wb-sub" id="wbSub">Loading...</div></div>
+    <div class="wb-health" id="wbHealth"></div>
+  </div>
+
+  <!-- Merged balance bar -->
+  <div class="bal-bar">
+    <div class="bal-section">
+      <div class="bal-label" id="obLabel">Opening Balance</div>
+      <div class="bal-value" id="obD">&#8377;0</div>
+    </div>
+    <div class="bal-arrow">&#10132;</div>
+    <div class="bal-section" style="text-align:right">
+      <div class="bal-label" id="cbLabel">Closing Balance</div>
+      <div class="bal-value" id="cbD">&#8377;0</div>
+    </div>
+    <button class="bal-edit-btn" id="obEB" onclick="togOB()">&#9999;&#65039; Edit OB</button>
+    <div class="ob-ef" id="obEF" style="display:none"><input type="number" id="obI" placeholder="Amount" min="0"><button class="ob-sv" onclick="svOB()">Save</button><button class="ob-cn" onclick="togOB()">Cancel</button></div>
+    <div style="width:100%"><div class="bal-formula" id="cbF"></div></div>
+  </div>
+
+  <!-- Stat cards with gradients + click-to-drill -->
   <div class="dg">
-    <div class="sc in tt" data-tip="All income received this financial year"><div class="sl" id="slIncome">Total Income</div><div class="sv" id="tI">&#8377;0</div></div>
-    <div class="sc ex tt" data-tip="All expenses paid this financial year"><div class="sl" id="slExpense">Total Expenses</div><div class="sv" id="tE">&#8377;0</div></div>
-    <div class="sc do tt" data-tip="All donations and charity this financial year"><div class="sl" id="slDonation">Donations / Charity</div><div class="sv" id="tD">&#8377;0</div></div>
+    <div class="sc in tt" data-tip="Click to view all income" onclick="drillTo('income')"><div class="sl" id="slIncome">Total Income</div><div class="sv" id="tI">&#8377;0</div></div>
+    <div class="sc ex tt" data-tip="Click to view all expenses" onclick="drillTo('expense')"><div class="sl" id="slExpense">Total Expenses</div><div class="sv" id="tE">&#8377;0</div></div>
+    <div class="sc do tt" data-tip="Click to view all donations" onclick="drillTo('donation')"><div class="sl" id="slDonation">Donations / Charity</div><div class="sv" id="tD">&#8377;0</div></div>
     <div class="sc ba tt" data-tip="Income + Donations - Expenses"><div class="sl">Net Balance</div><div class="sv" id="nB">&#8377;0</div></div>
   </div>
-  <div class="cb-bar"><span class="cb-lb" id="cbLabel">Closing Balance</span><span class="cb-fm" id="cbF"></span><span class="cb-v" id="cbD">&#8377;0</span></div>
+
+  <!-- Ratio bar -->
   <div class="ratio-bar" id="ratioBar">
     <div style="display:flex;align-items:center;justify-content:space-between">
       <h4 id="ratioTitle">Income vs Expense Ratio</h4>
@@ -390,27 +448,34 @@ html{scrollbar-color:var(--bd) var(--ca);scrollbar-width:thin}
     <div class="ratio-track" id="ratioTrack"></div>
     <div class="ratio-legend" id="ratioLegend"></div>
   </div>
+
+  <!-- Charts -->
   <div class="chart-row" style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:20px 0">
-    <div class="fc" style="padding:16px"><h3 class="dash-chart-title" style="font-size:.9rem;color:var(--t2);margin-bottom:12px">Category Breakdown</h3><div style="position:relative;height:200px"><canvas id="dashPie"></canvas></div></div>
-    <div class="fc" style="padding:16px"><h3 class="dash-chart-title" style="font-size:.9rem;color:var(--t2);margin-bottom:12px">Monthly Trend</h3><div style="position:relative;height:200px"><canvas id="dashBar"></canvas></div></div>
+    <div class="fc" style="padding:16px"><h3 class="dash-chart-title" style="font-size:.9rem;color:var(--t2);margin-bottom:12px">Category Breakdown</h3><div style="position:relative;height:280px"><canvas id="dashPie"></canvas></div></div>
+    <div class="fc" style="padding:16px"><h3 class="dash-chart-title" style="font-size:.9rem;color:var(--t2);margin-bottom:12px">Monthly Trend</h3><div style="position:relative;height:280px"><canvas id="dashBar"></canvas></div></div>
   </div>
+
+  <!-- Simplified quick-add -->
   <div class="qa-bar" id="qaBar">
     <span class="qa-label">Quick Add</span>
     <select id="qaType" style="width:110px"><option value="income">Income</option><option value="expense">Expense</option><option value="donation">Donation</option></select>
+    <input type="number" id="qaAmount" placeholder="Amount" min="1" style="width:120px">
+    <input type="text" id="qaCat" placeholder="Category" style="width:160px">
     <input type="date" id="qaDate" style="width:140px">
-    <input type="number" id="qaAmount" placeholder="Amount" min="1" style="width:110px">
-    <input type="text" id="qaCat" placeholder="Category" style="width:140px">
-    <input type="text" id="qaParty" placeholder="Party" style="width:130px">
-    <select id="qaMode" style="width:100px"><option>Cash</option><option>UPI</option><option>PhonePe</option><option value="GPay">Google Pay</option><option>NEFT</option><option>Cheque</option></select>
-    <button class="btn bp" onclick="qaSubmit()" style="padding:8px 18px">+ Add</button>
+    <button class="btn bp" onclick="qaSubmit()" style="padding:8px 20px">+ Add</button>
   </div>
-  <div class="tl"><h3>Recent Transactions</h3>
+
+  <!-- Recent transactions: 5 + View All -->
+  <div class="tl">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+      <h3 style="margin:0">Recent Transactions</h3>
+      <button class="view-all" onclick="sw('records')">View All &#10132;</button>
+    </div>
     <div class="qf-pills" id="qfPills">
       <button class="qf-pill on" onclick="setQF('all',this)">All</button>
       <button class="qf-pill" onclick="setQF('today',this)">Today</button>
       <button class="qf-pill" onclick="setQF('week',this)">This Week</button>
       <button class="qf-pill" onclick="setQF('month',this)">This Month</button>
-      <button class="qf-pill" onclick="setQF('quarter',this)">This Quarter</button>
     </div>
     <div id="rL"></div>
   </div>
@@ -765,8 +830,21 @@ function uD(){
   document.getElementById('slExpense').textContent='Expenses \u2014 '+fy.label;
   document.getElementById('slDonation').textContent='Donations \u2014 '+fy.label;
 
-  document.getElementById('cbF').textContent='Opening '+fi(fyOB)+' + Income '+fi(inc)+' + Donations '+fi(don)+' \u2212 Expenses '+fi(exp);
-  var dashTx=getQFFiltered(TX);rTL(dashTx.slice(0,10),'rL',true);if(typeof updateDashCharts==='function')updateDashCharts()
+  document.getElementById('cbF').textContent=fi(fyOB)+' + '+fi(inc)+' + '+fi(don)+' \u2212 '+fi(exp)+' = '+fi(fyCB);
+
+  // Welcome bar
+  var hr=new Date().getHours();
+  var greet=hr<12?'Good Morning':hr<17?'Good Afternoon':'Good Evening';
+  var wbG=document.getElementById('wbGreeting');if(wbG)wbG.textContent=greet+', ADOWA';
+  var wbS=document.getElementById('wbSub');if(wbS)wbS.textContent=getTodayLabel()+' \u00B7 '+fy.label+' \u00B7 '+fyTx.length+' transactions';
+  var wbH=document.getElementById('wbHealth');
+  if(wbH&&inc>0){var ratio=Math.round(exp/inc*100);
+    if(ratio<=70){wbH.textContent='\u2714 Healthy \u2014 spending '+ratio+'% of income';wbH.className='wb-health good'}
+    else if(ratio<=100){wbH.textContent='\u26A0 Caution \u2014 spending '+ratio+'% of income';wbH.className='wb-health warn'}
+    else{wbH.textContent='\u274C Overspend \u2014 '+ratio+'% of income';wbH.className='wb-health bad'}
+  }else if(wbH){wbH.textContent='';wbH.className='wb-health'}
+
+  var dashTx=getQFFiltered(TX);rTL(dashTx.slice(0,5),'rL',true);if(typeof updateDashCharts==='function')updateDashCharts()
 }
 
 function togOB(){var f=document.getElementById('obEF'),b=document.getElementById('obEB'),h=f.style.display==='none';f.style.display=h?'flex':'none';b.style.display=h?'none':'';if(h){document.getElementById('obI').value=gOB()||'';document.getElementById('obI').focus()}}
@@ -1245,14 +1323,22 @@ function getQFFiltered(txList){
     if(_qfMode==='quarter'){var m=todayD.getMonth(),qStart=m-m%3;var qs=new Date(todayD.getFullYear(),qStart,1);return d>=qs&&d<=todayD}
     return true})}
 
+// Drill to records filtered by type
+function drillTo(type){
+  sw('records');
+  setTimeout(function(){_typeFilter=type;
+    document.querySelectorAll('#recSearch .qf-pill').forEach(function(p){
+      var t=p.textContent.trim().toLowerCase();p.classList.toggle('on',t.indexOf(type)!==-1)});
+    rR()},100)}
+
 // Quick-add bar
 function qaSubmit(){
   var type=document.getElementById('qaType').value;
   var date=document.getElementById('qaDate').value||getISTDate();
   var amount=parseFloat(document.getElementById('qaAmount').value);
   var cat=document.getElementById('qaCat').value.trim();
-  var party=document.getElementById('qaParty').value.trim();
-  var mode=document.getElementById('qaMode').value;
+  var party='';
+  var mode='Cash';
   if(!amount||amount<=0){toast('Enter amount');return}
   if(!cat){toast('Enter category');return}
   var tx={id:Date.now()+Math.random().toString(36).substr(2,5),type:type,date:date,amount:amount,category:cat,customSource:'',party:party,mode:mode,customMode:'',reference:'QA-'+Date.now(),description:'Quick entry',photos:[],createdAt:new Date().toISOString()};
