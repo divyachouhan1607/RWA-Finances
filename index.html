@@ -215,9 +215,49 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--t);min-he
 
 /* Record sub-tabs */
 .rec-tabs{display:flex;gap:0;border-bottom:2px solid var(--bd)}
-.rec-tab{flex:1;padding:12px 20px;font-family:inherit;font-size:.88rem;font-weight:600;border:none;background:none;color:var(--t2);cursor:pointer;transition:.2s;border-bottom:3px solid transparent;text-align:center}
+.rec-tab{flex:1;padding:12px 20px;font-family:inherit;font-size:.88rem;font-weight:600;border:none;background:none;color:var(--t2);cursor:pointer;transition:.2s;border-bottom:3px solid transparent;text-align:center;position:relative}
 .rec-tab:hover{color:var(--p);background:var(--pp)}
 .rec-tab.on{color:var(--p);border-bottom-color:var(--p);background:var(--pp)}
+.rec-badge{position:absolute;top:6px;right:12px;background:var(--p);color:#fff;font-size:.6rem;font-weight:700;padding:2px 7px;border-radius:10px;min-width:18px;text-align:center;line-height:1.3}
+.rec-badge.warn{background:var(--a)}
+.rec-badge.ok{background:#2D8B4E}
+
+/* Filter chips */
+.filter-chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;animation:diIn .3s ease}
+.filter-chip{display:inline-flex;align-items:center;gap:6px;padding:5px 12px;background:var(--pp);color:var(--p);border-radius:16px;font-size:.76rem;font-weight:600;border:1px solid rgba(178,34,52,.2)}
+.filter-chip .chip-x{cursor:pointer;font-size:.7rem;width:16px;height:16px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:rgba(178,34,52,.15);transition:.15s}
+.filter-chip .chip-x:hover{background:var(--p);color:#fff}
+
+/* No results state */
+.no-results{text-align:center;padding:40px 20px;animation:diIn .3s ease}
+.no-results .nr-icon{font-size:3.5rem;margin-bottom:12px;opacity:.4}
+.no-results h4{font-family:'Playfair Display',serif;font-size:1.1rem;color:var(--t);margin-bottom:6px}
+.no-results p{font-size:.82rem;color:var(--t2);margin-bottom:16px;line-height:1.5}
+.no-results .nr-clear{padding:8px 20px;background:var(--p);color:#fff;border:none;border-radius:var(--rs);font-family:inherit;font-size:.82rem;font-weight:600;cursor:pointer;transition:.2s}
+.no-results .nr-clear:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(178,34,52,.3)}
+
+/* Backup status card */
+.bk-status-card{background:var(--card);border-radius:var(--rd);padding:24px;margin:16px 0;box-shadow:var(--sh);display:flex;align-items:center;gap:24px}
+.bk-ring{position:relative;width:80px;height:80px;flex-shrink:0}
+.bk-ring svg{width:80px;height:80px;transform:rotate(-90deg)}
+.bk-ring circle{fill:none;stroke-width:6}
+.bk-ring .ring-bg{stroke:var(--bd)}
+.bk-ring .ring-fg{stroke-linecap:round;transition:stroke-dashoffset .8s ease,stroke .3s}
+.bk-ring-label{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:'Playfair Display',serif}
+.bk-ring-num{font-size:1.4rem;font-weight:700;line-height:1}
+.bk-ring-unit{font-size:.6rem;color:var(--t2);font-weight:600;text-transform:uppercase;font-family:'DM Sans',sans-serif}
+.bk-info{flex:1}
+.bk-info h4{font-size:.95rem;font-weight:700;margin-bottom:4px}
+.bk-info-row{display:flex;gap:20px;margin-top:8px;flex-wrap:wrap}
+.bk-info-item{font-size:.78rem;color:var(--t2);display:flex;align-items:center;gap:6px}
+.bk-info-item strong{color:var(--t);font-weight:600}
+.bk-info-dot{width:8px;height:8px;border-radius:50%}
+
+/* PDF options */
+.pdf-opts{margin-top:12px;padding:12px 16px;background:var(--ca);border-radius:var(--rs);border:1px solid var(--bd)}
+.pdf-opts label{display:flex;align-items:center;gap:8px;font-size:.82rem;font-weight:500;color:var(--t);padding:6px 0;cursor:pointer;transition:.15s}
+.pdf-opts label:hover{color:var(--p)}
+.pdf-opts input[type="checkbox"]{width:16px;height:16px;accent-color:var(--p);cursor:pointer}
 .rec-panel{display:none}
 .rec-panel.on{display:block;animation:recIn .3s ease}
 @keyframes recIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
@@ -429,8 +469,8 @@ html{scrollbar-color:var(--bd) var(--ca);scrollbar-width:thin}
   <div class="fc" style="padding:16px 20px;margin-bottom:0">
     <h2 style="margin-bottom:14px">&#128203; Records</h2>
     <div class="rec-tabs">
-      <button class="rec-tab on" onclick="swRecTab('search',this)">&#128269; Search</button>
-      <button class="rec-tab" onclick="swRecTab('backup',this)">&#128190; Backup</button>
+      <button class="rec-tab on" onclick="swRecTab('search',this)">&#128269; Search <span class="rec-badge" id="searchBadge">0</span></button>
+      <button class="rec-tab" onclick="swRecTab('backup',this)">&#128190; Backup <span class="rec-badge ok" id="backupBadge"></span></button>
       <button class="rec-tab" onclick="swRecTab('export',this)">&#128229; Export</button>
     </div>
   </div>
@@ -450,10 +490,12 @@ html{scrollbar-color:var(--bd) var(--ca);scrollbar-width:thin}
       <!-- Type filter -->
       <div style="display:flex;gap:6px;margin-top:10px;flex-wrap:wrap">
         <button class="qf-pill on" onclick="setTypeFilter('all',this)">All Types</button>
-        <button class="qf-pill" onclick="setTypeFilter('income',this)">&#128176; Income</button>
-        <button class="qf-pill" onclick="setTypeFilter('expense',this)">&#128228; Expense</button>
-        <button class="qf-pill" onclick="setTypeFilter('donation',this)">&#129330; Donation</button>
+        <button class="qf-pill" onclick="setTypeFilter('income',this)"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#2D8B4E;margin-right:2px"></span> Income</button>
+        <button class="qf-pill" onclick="setTypeFilter('expense',this)"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#C0392B;margin-right:2px"></span> Expense</button>
+        <button class="qf-pill" onclick="setTypeFilter('donation',this)"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--b);margin-right:2px"></span> Donation</button>
       </div>
+      <!-- Active filter chips -->
+      <div class="filter-chips" id="filterChips" style="display:none"></div>
     </div>
     <div id="rBB" style="display:none"><div class="ob-bar" style="margin:12px 0 6px"><div class="ob-l"><span class="ob-lb">Opening (Period)</span><span class="ob-v" id="rOB">&#8377;0</span></div></div>
       <div class="rps"><div class="rpi income"><span class="rpl">Income</span><span class="rpv" id="rpI">&#8377;0</span></div><div class="rpi expense"><span class="rpl">Expenses</span><span class="rpv" id="rpE">&#8377;0</span></div><div class="rpi donation"><span class="rpl">Donations</span><span class="rpv" id="rpD">&#8377;0</span></div></div>
@@ -470,7 +512,21 @@ html{scrollbar-color:var(--bd) var(--ca);scrollbar-width:thin}
 
   <!-- SUB-TAB 2: Backup -->
   <div class="rec-panel" id="recBackup">
-    <div class="bks" id="bkS" style="margin:16px 0 12px"><span id="bkI">&#9203;</span> <span id="bkT">No backup yet</span></div>
+    <div class="bk-status-card" id="bkStatusCard">
+      <div class="bk-ring">
+        <svg viewBox="0 0 80 80"><circle class="ring-bg" cx="40" cy="40" r="34"/><circle class="ring-fg" id="bkRingFg" cx="40" cy="40" r="34" stroke-dasharray="213.6" stroke-dashoffset="0"/></svg>
+        <div class="bk-ring-label"><span class="bk-ring-num" id="bkRingNum">--</span><span class="bk-ring-unit" id="bkRingUnit">days</span></div>
+      </div>
+      <div class="bk-info">
+        <h4 id="bkStatusTitle">No backup yet</h4>
+        <p style="font-size:.82rem;color:var(--t2);margin-bottom:4px" id="bkStatusSub">Create your first backup to secure your data</p>
+        <div class="bk-info-row">
+          <div class="bk-info-item"><div class="bk-info-dot" style="background:var(--p)"></div> Records: <strong id="bkRecCount">0</strong></div>
+          <div class="bk-info-item"><div class="bk-info-dot" style="background:var(--a)"></div> Size: <strong id="bkDataSize">0 KB</strong></div>
+          <div class="bk-info-item"><div class="bk-info-dot" style="background:var(--b)"></div> Last: <strong id="bkLastTime">Never</strong></div>
+        </div>
+      </div>
+    </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
       <div class="fc bkc" style="margin:0"><div class="bkh"><div class="bki" style="background:var(--pp);color:var(--p)">&#128229;</div><div><h3>Download Backup</h3><p>Save as JSON file for restoring later.</p></div></div><div class="br"><button class="btn bp bl" onclick="dlJ()">&#128229; Download JSON Backup</button></div></div>
       <div class="fc bkc" style="margin:0"><div class="bkh"><div class="bki" style="background:var(--bp);color:var(--b)">&#128228;</div><div><h3>Share Backup</h3><p>Send via WhatsApp or Email.</p></div></div><div class="br"><button class="btn bp bl" style="background:linear-gradient(135deg,#25D366,#128C7E)" onclick="shB('json')">&#128242; Share JSON</button></div></div>
@@ -514,9 +570,16 @@ html{scrollbar-color:var(--bd) var(--ca);scrollbar-width:thin}
       <div class="fc" style="margin:0;text-align:center;padding:28px 20px">
         <div style="font-size:2.5rem;margin-bottom:12px">&#128196;</div>
         <h3 style="font-family:'Playfair Display',serif;font-size:1.1rem;color:var(--r);margin-bottom:6px">PDF Report</h3>
-        <p style="font-size:.8rem;color:var(--t2);margin-bottom:16px;line-height:1.5">Full report with summary, charts,<br>and detailed transaction tables.</p>
+        <p style="font-size:.8rem;color:var(--t2);margin-bottom:12px;line-height:1.5">Customise what to include<br>in your PDF report.</p>
+        <div class="pdf-opts" style="text-align:left;margin-bottom:14px">
+          <label><input type="checkbox" id="pdfOptSummary" checked> Financial Summary</label>
+          <label><input type="checkbox" id="pdfOptCharts" checked> Charts (Pie + Bar)</label>
+          <label><input type="checkbox" id="pdfOptIncome" checked> Income Transactions</label>
+          <label><input type="checkbox" id="pdfOptExpense" checked> Expense Transactions</label>
+          <label><input type="checkbox" id="pdfOptDonation" checked> Donation Transactions</label>
+        </div>
         <div style="display:flex;flex-direction:column;gap:8px">
-          <button class="btn" onclick="savePDF()" style="width:100%;justify-content:center;background:linear-gradient(135deg,var(--r),#7A5040);color:#fff">&#128196; Generate PDF Report</button>
+          <button class="btn" onclick="savePDFCustom()" style="width:100%;justify-content:center;background:linear-gradient(135deg,var(--r),#7A5040);color:#fff">&#128196; Generate PDF Report</button>
           <button class="btn bo" onclick="window.print()" style="width:100%;justify-content:center">&#128424; Print View</button>
         </div>
       </div>
@@ -722,7 +785,11 @@ function getDateLabel(dateStr){
   if(diff===0)return'Today';if(diff===1)return'Yesterday';
   return d.toLocaleDateString('en-IN',{day:'numeric',month:'long',year:'numeric'})}
 
-function rTL(items,cid,grouped){var c=document.getElementById(cid);if(!items.length){c.innerHTML='<div class="es"><div class="ei">\uD83D\uDCED</div><p>No transactions yet.</p><p style="font-size:.8rem;margin-top:6px;opacity:.7">Start by recording your first income or expense</p><button class="es-cta" onclick="sw(\'income\')">+ Add Income</button> <button class="es-cta" onclick="sw(\'expense\')" style="background:linear-gradient(135deg,var(--r),#7A5040);margin-left:8px">+ Add Expense</button></div>';return}
+function hasActiveFilters(){return DM!=='none'||_typeFilter!=='all'||(document.getElementById('txSearch')&&document.getElementById('txSearch').value.trim())}
+function rTL(items,cid,grouped){var c=document.getElementById(cid);if(!items.length){
+  if(hasActiveFilters()&&cid==='aRL'){c.innerHTML='<div class="no-results"><div class="nr-icon">\uD83D\uDD0D</div><h4>No matching records</h4><p>Your filters didn\'t match any transactions.<br>Try adjusting your date range, type, or search terms.</p><button class="nr-clear" onclick="clearAllFilters()">Clear All Filters</button></div>'}
+  else{c.innerHTML='<div class="es"><div class="ei">\uD83D\uDCED</div><p>No transactions yet.</p><p style="font-size:.8rem;margin-top:6px;opacity:.7">Start by recording your first income or expense</p><button class="es-cta" onclick="sw(\'income\')">+ Add Income</button> <button class="es-cta" onclick="sw(\'expense\')" style="background:linear-gradient(135deg,var(--r),#7A5040);margin-left:8px">+ Add Expense</button></div>'}
+  return}
 var h='',lastDate='';items.forEach(function(tx){
   if(grouped&&tx.date!==lastDate){lastDate=tx.date;h+='<div class="date-group-header"><div class="dg-dot"></div>'+getDateLabel(tx.date)+'</div>'}
   h+='<div class="ti '+tx.type+'-card" onclick="sD(\''+tx.id+'\')" oncontextmenu="showCtx(event,\''+tx.id+'\')" data-txid="'+tx.id+'"><div class="tic '+tx.type+'">'+IC[tx.type]+'</div><div class="tid"><div class="tit">'+tx.category+(tx.party?' \u2014 '+tx.party:'')+'</div><div class="tim"><span>'+fd(tx.date)+'</span><span>'+tx.mode+'</span>'+(tx.photos&&tx.photos.length?'<span class="tip">\uD83D\uDCCE '+tx.photos.length+' proof</span>':'')+'</div></div><div class="tia '+tx.type+'">'+(tx.type==='income'?'+':'-')+fi(tx.amount)+'</div><div class="tx-actions" onclick="event.stopPropagation()"><button class="teb" onclick="eTx(\''+tx.id+'\')" title="Edit">&#9999;&#65039;</button><button class="tdb" onclick="dTx(\''+tx.id+'\')" title="Delete">\uD83D\uDDD1</button></div></div>'});c.innerHTML=h}
@@ -751,7 +818,8 @@ if(sc&&si){sc.classList.toggle('show',si.value.length>0)}
 var bb=document.getElementById('rBB'),sd=gSD(),show=DM!=='none'&&sd;
 if(show){bb.style.display='block';var pi=0,pe2=0,pd=0;f.forEach(function(t){if(t.type==='income')pi+=t.amount;else if(t.type==='expense')pe2+=t.amount;else if(t.type==='donation')pd+=t.amount});
 var po=cPOB(sd),pc=po+pi+pd-pe2;document.getElementById('rOB').textContent=fi(po);document.getElementById('rpI').textContent=fi(pi);document.getElementById('rpE').textContent=fi(pe2);document.getElementById('rpD').textContent=fi(pd);
-document.getElementById('rCB').textContent=fi(pc);document.getElementById('rCF').textContent=fi(po)+' + '+fi(pi)+' + '+fi(pd)+' \u2212 '+fi(pe2)}else bb.style.display='none'}
+document.getElementById('rCB').textContent=fi(pc);document.getElementById('rCF').textContent=fi(po)+' + '+fi(pi)+' + '+fi(pd)+' \u2212 '+fi(pe2)}else bb.style.display='none';
+updateFilterChips();updateBadges()}
 
 function sD(id){var tx=TX.find(function(t){return t.id===id});if(!tx)return;
 document.getElementById('mT').textContent=(tx.type==='income'?'\uD83D\uDCB0 Income':tx.type==='expense'?'\uD83D\uDCE4 Expense':'\uD83E\uDD32 Donation')+' Details';
@@ -786,7 +854,8 @@ function expXL(m){var data=m==='f'?gF():TX;if(!data.length){toast('No records!')
 var rows=data.map(function(tx,i){return{'S.No.':i+1,Date:tx.date,Type:tx.type.charAt(0).toUpperCase()+tx.type.slice(1),Category:tx.category,'Amount':tx.amount,Party:tx.party,Mode:tx.mode,Reference:tx.reference,Description:tx.description,Proof:tx.photos&&tx.photos.length?'Yes ('+tx.photos.length+')':'No'}});
 var ws=XLSX.utils.json_to_sheet(rows);var wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'Transactions');XLSX.writeFile(wb,'ADOWA_'+getISTDate()+'.xlsx');toast('Downloaded!')}
 
-function savePDF(){
+function savePDF(opts){
+  if(!opts)opts={summary:true,charts:true,income:true,expense:true,donation:true};
   try{
   console.log('jspdf check:', typeof window.jspdf, window.jspdf);
   console.log('jsPDF check:', typeof window.jsPDF, window.jsPDF);
@@ -829,6 +898,7 @@ function savePDF(){
   var y=40;
 
   // Summary section
+  if(opts.summary){
   doc.setFontSize(12);doc.setFont('helvetica','bold');doc.setTextColor(178,34,52);
   doc.text('Financial Summary - '+fy.label,14,y);y+=8;
   doc.setTextColor(0);doc.setFontSize(10);doc.setFont('helvetica','normal');
@@ -847,8 +917,10 @@ function savePDF(){
     columnStyles:{0:{cellWidth:120},1:{cellWidth:50,halign:'right'}},
     margin:{left:14,right:14}});
   y=doc.lastAutoTable.finalY+12;
+  }// end summary
 
   // Charts
+  if(opts.charts){
   var pieCanvas=document.getElementById('dashPie');
   var barCanvas=document.getElementById('dashBar');
   var chartsAdded=false;
@@ -891,10 +963,11 @@ function savePDF(){
       y+=10;
     }
   }
+  }// end charts
 
   // Income transactions
   var incTx=fyTx.filter(function(t){return t.type==='income'});
-  if(incTx.length){
+  if(opts.income&&incTx.length){
     if(y>240){y=newPage()}
     doc.setFontSize(11);doc.setFont('helvetica','bold');doc.setTextColor(45,139,78);
     doc.text('Income Details ('+incTx.length+' entries | Total: '+fi(inc)+')',14,y);y+=6;
@@ -911,7 +984,7 @@ function savePDF(){
 
   // Expense transactions
   var expTx=fyTx.filter(function(t){return t.type==='expense'});
-  if(expTx.length){
+  if(opts.expense&&expTx.length){
     if(y>240){y=newPage()}
     doc.setFontSize(11);doc.setFont('helvetica','bold');doc.setTextColor(192,57,43);
     doc.text('Expense Details ('+expTx.length+' entries | Total: '+fi(exp)+')',14,y);y+=6;
@@ -928,7 +1001,7 @@ function savePDF(){
 
   // Donation transactions
   var donTx=fyTx.filter(function(t){return t.type==='donation'});
-  if(donTx.length){
+  if(opts.donation&&donTx.length){
     if(y>240){y=newPage()}
     doc.setFontSize(11);doc.setFont('helvetica','bold');doc.setTextColor(59,107,138);
     doc.text('Donation / Charity Details ('+donTx.length+' entries | Total: '+fi(don)+')',14,y);y+=6;
@@ -1305,6 +1378,86 @@ function setTypeFilter(type,btn){
   _typeFilter=type;
   document.querySelectorAll('#recSearch .qf-pill').forEach(function(p){p.classList.remove('on')});
   btn.classList.add('on');rR()}
+
+// Filter chips
+function updateFilterChips(){
+  var chips=[];var c=document.getElementById('filterChips');if(!c)return;
+  if(DM==='single'){var d=document.getElementById('fDS').value;if(d)chips.push({label:'Date: '+fd(d),clear:function(){document.getElementById('fDS').value='';sdm('none',document.querySelector('#recSearch .db'))}})}
+  if(DM==='range'){var f=document.getElementById('fDF').value,t=document.getElementById('fDT').value;
+    if(f||t)chips.push({label:'Range: '+(f?fd(f):'...')+' \u2192 '+(t?fd(t):'...'),clear:function(){document.getElementById('fDF').value='';document.getElementById('fDT').value='';sdm('none',document.querySelector('#recSearch .db'))}})}
+  if(DM==='month'){var m=document.getElementById('fDM').value;if(m)chips.push({label:'Month: '+formatMonthYear(m+'-01'),clear:function(){document.getElementById('fDM').value='';sdm('none',document.querySelector('#recSearch .db'))}})}
+  if(_typeFilter!=='all')chips.push({label:'Type: '+_typeFilter.charAt(0).toUpperCase()+_typeFilter.slice(1),clear:function(){_typeFilter='all';document.querySelectorAll('#recSearch .qf-pill').forEach(function(p,i){p.classList.toggle('on',i===0)});rR()}});
+  var q=(document.getElementById('txSearch')||{}).value;
+  if(q&&q.trim())chips.push({label:'Search: "'+q.trim()+'"',clear:function(){document.getElementById('txSearch').value='';document.getElementById('searchClear').classList.remove('show');rR()}});
+  if(!chips.length){c.style.display='none';return}
+  c.style.display='flex';
+  c.innerHTML=chips.map(function(ch,i){return'<div class="filter-chip"><span>'+ch.label+'</span><span class="chip-x" onclick="clearChip('+i+')">&#10005;</span></div>'}).join('');
+  window._activeChips=chips}
+function clearChip(i){if(window._activeChips&&window._activeChips[i])window._activeChips[i].clear()}
+function clearAllFilters(){DM='none';_typeFilter='all';
+  document.querySelectorAll('#recSearch .db').forEach(function(b,i){b.classList.toggle('on',i===0)});
+  document.querySelectorAll('#recSearch .qf-pill').forEach(function(p,i){p.classList.toggle('on',i===0)});
+  document.getElementById('fDS').value='';document.getElementById('fDF').value='';document.getElementById('fDT').value='';document.getElementById('fDM').value='';
+  document.getElementById('txSearch').value='';document.getElementById('searchClear').classList.remove('show');
+  document.getElementById('dsW').style.display='none';document.getElementById('drW').style.display='none';document.getElementById('dmW').style.display='none';
+  rR()}
+
+// Badge counts
+function updateBadges(){
+  var sb=document.getElementById('searchBadge');if(sb)sb.textContent=TX.length;
+  var bb=document.getElementById('backupBadge');
+  var l=S.get(BK);
+  if(bb){if(!l){bb.textContent='!';bb.className='rec-badge warn'}
+    else{var days=Math.floor((Date.now()-new Date(l).getTime())/86400000);
+      if(days<=7){bb.textContent='\u2713';bb.className='rec-badge ok'}
+      else if(days<=30){bb.textContent=days+'d';bb.className='rec-badge warn'}
+      else{bb.textContent=days+'d';bb.className='rec-badge warn'}}}}
+
+// Enhanced backup status
+function uBk(){
+  var l=S.get(BK);
+  var ring=document.getElementById('bkRingFg');
+  var ringNum=document.getElementById('bkRingNum');
+  var ringUnit=document.getElementById('bkRingUnit');
+  var title=document.getElementById('bkStatusTitle');
+  var sub=document.getElementById('bkStatusSub');
+  var recCount=document.getElementById('bkRecCount');
+  var dataSize=document.getElementById('bkDataSize');
+  var lastTime=document.getElementById('bkLastTime');
+  if(recCount)recCount.textContent=TX.length;
+  var sizeBytes=new Blob([JSON.stringify({tx:TX,ob:gOB()})]).size;
+  if(dataSize)dataSize.textContent=sizeBytes<1024?(sizeBytes+' B'):(Math.round(sizeBytes/1024)+' KB');
+  var circumference=213.6;
+  if(l){
+    var days=Math.floor((Date.now()-new Date(l).getTime())/86400000);
+    if(ringNum)ringNum.textContent=days;
+    if(ringUnit)ringUnit.textContent=days===1?'day':'days';
+    if(title)title.textContent=days===0?'Backed up today!':days===1?'Backed up yesterday':'Last backup '+days+' days ago';
+    if(sub)sub.textContent=TX.length+' records secured \u00B7 '+new Date(l).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'});
+    if(lastTime)lastTime.textContent=new Date(l).toLocaleDateString('en-IN',{day:'numeric',month:'short'});
+    var pct=Math.min(days/30,1);
+    var offset=circumference*pct;
+    if(ring){ring.setAttribute('stroke-dashoffset',circumference-offset);
+      ring.setAttribute('stroke',days<=7?'#2D8B4E':days<=30?'#C4843E':'#C0392B')}
+  }else{
+    if(ringNum)ringNum.textContent='--';
+    if(ringUnit)ringUnit.textContent='';
+    if(title)title.textContent='No backup yet';
+    if(sub)sub.textContent='Create your first backup to secure your data';
+    if(lastTime)lastTime.textContent='Never';
+    if(ring){ring.setAttribute('stroke-dashoffset','0');ring.setAttribute('stroke','var(--bd)')}
+  }
+  updateBadges()}
+
+// Custom PDF with options
+function savePDFCustom(){
+  var opts={summary:document.getElementById('pdfOptSummary').checked,
+    charts:document.getElementById('pdfOptCharts').checked,
+    income:document.getElementById('pdfOptIncome').checked,
+    expense:document.getElementById('pdfOptExpense').checked,
+    donation:document.getElementById('pdfOptDonation').checked};
+  if(!opts.summary&&!opts.charts&&!opts.income&&!opts.expense&&!opts.donation){toast('Select at least one section');return}
+  savePDF(opts)}
 
 // Backup section toggle (legacy, kept for compatibility)
 function toggleBackupSection(){var s=document.getElementById('backupSection');var icon=document.getElementById('bkToggleIcon');
