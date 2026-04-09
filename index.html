@@ -319,7 +319,6 @@ html{scrollbar-color:var(--bd) var(--ca);scrollbar-width:thin}
   <button class="tab" data-t="donation" onclick="sw('donation',this)"><span class="tab-icon">&#129330;</span><span class="tab-label">Donations</span></button>
   <button class="tab" data-t="records" onclick="sw('records',this)"><span class="tab-icon">&#128203;</span><span class="tab-label">Records</span></button>
   <button class="tab" data-t="analytics" onclick="sw('analytics',this)"><span class="tab-icon">&#128200;</span><span class="tab-label">Analytics</span></button>
-  <button class="tab" data-t="backup" onclick="sw('backup',this)"><span class="tab-icon">&#128190;</span><span class="tab-label">Backup</span></button>
 </nav>
 <div class="mn">
 
@@ -440,6 +439,31 @@ html{scrollbar-color:var(--bd) var(--ca);scrollbar-width:thin}
   <div id="aRL" class="tl" style="margin-top:0"></div>
   <div id="loadMoreWrap" style="text-align:center;margin-top:12px;display:none"><button class="btn bo" onclick="loadMore()" id="loadMoreBtn" style="width:100%">Load More</button></div>
   <div style="text-align:center;margin-top:12px"><span id="rC" style="font-size:.85rem;color:var(--t2)"></span></div>
+
+  <!-- Backup Section (collapsible) -->
+  <div class="fc" style="margin-top:24px;padding:0;overflow:hidden">
+    <div style="padding:16px 20px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--bd)" onclick="toggleBackupSection()">
+      <h2 style="font-family:'Playfair Display',serif;font-size:1.2rem;color:var(--p);margin:0">&#128190; Backup &amp; Data</h2>
+      <span id="bkToggleIcon" style="font-size:1.2rem;color:var(--t2);transition:transform .3s">&#9660;</span>
+    </div>
+    <div id="backupSection" style="display:none;padding:20px">
+      <div class="bks" id="bkS" style="margin:0 0 16px"><span id="bkI">&#9203;</span> <span id="bkT">No backup yet</span></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+        <div class="fc bkc" style="margin:0"><div class="bkh"><div class="bki" style="background:var(--pp);color:var(--p)">&#128229;</div><div><h3>Download Backup</h3><p>JSON for restore, Excel for reading.</p></div></div><div class="br"><button class="btn bp" onclick="dlJ()">&#128229; JSON</button><button class="btn ba2" onclick="dlX()">&#128202; Excel</button></div></div>
+        <div class="fc bkc" style="margin:0"><div class="bkh"><div class="bki" style="background:var(--bp);color:var(--b)">&#128228;</div><div><h3>Share via WhatsApp / Email</h3><p>Send to yourself or RWA group.</p></div></div><div class="br"><button class="btn bp" style="background:linear-gradient(135deg,#25D366,#128C7E)" onclick="shB('json')">&#128242; JSON</button><button class="btn ba2" onclick="shB('excel')">&#128242; Excel</button></div></div>
+      </div>
+      <div class="fc bkc" style="margin:16px 0"><div class="bkh"><div class="bki" style="background:#E8F5E9;color:#34A853">&#128202;</div><div><h3>Google Sheets Sync</h3><p>Auto-save to cloud.</p></div></div>
+        <div class="gss"><div class="gsd off" id="gsD"></div><span id="gsT">Not connected</span></div>
+        <div class="fg" style="margin:12px 0"><label>Web App URL</label><div style="display:flex;gap:8px"><input type="url" id="gsU" placeholder="https://script.google.com/macros/s/..." style="flex:1;padding:12px;border:2px solid var(--bd);border-radius:var(--rs);font-family:inherit;background:var(--ca)"><button class="btn bp" onclick="gsC()" id="gsB">Connect</button></div></div>
+        <div id="gsA" style="display:none"><div class="br"><button class="btn bp" onclick="gsSync()">&#9729;&#65039; Sync</button><button class="btn bo" onclick="gsLoad()">&#128229; Load</button><button class="btn bd" onclick="gsDC()">Disconnect</button></div></div></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+        <div class="fc bkc" style="margin:0;border:2px dashed var(--bd)"><div class="bkh"><div class="bki" style="background:var(--rp);color:var(--r)">&#128260;</div><div><h3>Restore from Backup</h3><p>Select a JSON backup file.</p></div></div>
+          <div class="ra" onclick="document.getElementById('rsI').click()"><input type="file" id="rsI" accept=".json" style="display:none" onchange="hRs(event)"><div class="ui">&#128193;</div><p>Tap to <strong>select file</strong></p></div>
+          <div id="rsP" style="display:none"><div class="rpw"><h4>&#128203; Summary</h4><div class="rss" id="rsS"></div><div class="br" style="margin-top:16px"><button class="btn bp" onclick="cRs('merge')">&#128256; Merge</button><button class="btn bo" onclick="xRs()">Cancel</button></div></div></div></div>
+        <div class="fc bkc" style="margin:0;border:2px solid var(--dg);border-left-width:5px"><div class="bkh"><div class="bki" style="background:var(--rp);color:var(--r)">&#9888;&#65039;</div><div><h3 style="color:var(--r)">Danger Zone</h3><p>Delete ALL data permanently.</p></div></div><div class="br"><button class="btn bd" onclick="delAll()">&#128465;&#65039; Delete All</button></div></div>
+      </div>
+    </div>
+  </div>
 </div>
 
 <div class="tc" id="tab-analytics">
@@ -490,19 +514,6 @@ html{scrollbar-color:var(--bd) var(--ca);scrollbar-width:thin}
   </div>
 </div>
 
-<div class="tc" id="tab-backup">
-  <div class="bks" id="bkS"><span id="bkI">&#9203;</span> <span id="bkT">No backup yet</span></div>
-  <div class="fc bkc"><div class="bkh"><div class="bki" style="background:var(--pp);color:var(--p)">&#128229;</div><div><h3>Download Backup</h3><p>JSON for restore, Excel for reading.</p></div></div><div class="br"><button class="btn bp bl" onclick="dlJ()">&#128229; JSON</button><button class="btn ba2 bl" onclick="dlX()">&#128202; Excel</button></div></div>
-  <div class="fc bkc"><div class="bkh"><div class="bki" style="background:var(--bp);color:var(--b)">&#128228;</div><div><h3>Share via WhatsApp / Email</h3><p>Send to yourself or RWA group.</p></div></div><div class="br"><button class="btn bp bl" style="background:linear-gradient(135deg,#25D366,#128C7E)" onclick="shB('json')">&#128242; JSON</button><button class="btn ba2 bl" onclick="shB('excel')">&#128242; Excel</button></div></div>
-  <div class="fc bkc"><div class="bkh"><div class="bki" style="background:#E8F5E9;color:#34A853">&#128202;</div><div><h3>Google Sheets Sync</h3><p>Auto-save to cloud.</p></div></div>
-    <div class="gss"><div class="gsd off" id="gsD"></div><span id="gsT">Not connected</span></div>
-    <div class="fg" style="margin:12px 0"><label>Web App URL</label><div style="display:flex;gap:8px"><input type="url" id="gsU" placeholder="https://script.google.com/macros/s/..." style="flex:1;padding:12px;border:2px solid var(--bd);border-radius:var(--rs);font-family:inherit;background:var(--ca)"><button class="btn bp" onclick="gsC()" id="gsB">Connect</button></div></div>
-    <div id="gsA" style="display:none"><div class="br"><button class="btn bp" onclick="gsSync()">&#9729;&#65039; Sync</button><button class="btn bo" onclick="gsLoad()">&#128229; Load</button><button class="btn bd" onclick="gsDC()">Disconnect</button></div></div></div>
-  <div class="fc bkc" style="border:2px dashed var(--bd)"><div class="bkh"><div class="bki" style="background:var(--rp);color:var(--r)">&#128260;</div><div><h3>Restore from Backup</h3><p>Select a JSON backup file.</p></div></div>
-    <div class="ra" onclick="document.getElementById('rsI').click()"><input type="file" id="rsI" accept=".json" style="display:none" onchange="hRs(event)"><div class="ui">&#128193;</div><p>Tap to <strong>select file</strong></p></div>
-    <div id="rsP" style="display:none"><div class="rpw"><h4>&#128203; Summary</h4><div class="rss" id="rsS"></div><div class="br" style="margin-top:16px"><button class="btn bp" onclick="cRs('merge')">&#128256; Merge with Existing</button><button class="btn bo" onclick="xRs()">Cancel</button></div></div></div></div>
-  <div class="fc bkc" style="border:2px solid var(--dg);border-left-width:5px"><div class="bkh"><div class="bki" style="background:var(--rp);color:var(--r)">&#9888;&#65039;</div><div><h3 style="color:var(--r)">Danger Zone</h3><p>Delete ALL data permanently.</p></div></div><div class="br"><button class="btn bd bl" onclick="delAll()">&#128465;&#65039; Delete All</button></div></div>
-</div>
 
 </div>
 </div><!-- end app-layout -->
@@ -550,7 +561,7 @@ html{scrollbar-color:var(--bd) var(--ca);scrollbar-width:thin}
 
 <!-- Keyboard Shortcuts Hint -->
 <div class="kb-hint" id="kbHint">
-  <kbd>N</kbd> New &nbsp; <kbd>/</kbd> Search &nbsp; <kbd>Esc</kbd> Close &nbsp; <kbd>1-7</kbd> Tabs
+  <kbd>N</kbd> New &nbsp; <kbd>/</kbd> Search &nbsp; <kbd>Esc</kbd> Close &nbsp; <kbd>1-6</kbd> Tabs
 </div>
 
 <!-- Edit Transaction Modal -->
@@ -590,7 +601,7 @@ function sw(n,b){
   if(b)b.classList.add('on');else{var x=document.querySelector('.tab[data-t="'+n+'"]');if(x)x.classList.add('on')}
   window.scrollTo({top:0,behavior:'smooth'})
   updateBreadcrumb(n);
-  if(n==='dashboard')uD();if(n==='records')rR();if(n==='backup')uBk();if(n==='analytics')updAnalytics();
+  if(n==='dashboard')uD();if(n==='records'){rR();uBk()}if(n==='analytics')updAnalytics();
   if(n==='income'||n==='expense'||n==='donation'){var f=document.getElementById(n+'Form');var di=f.querySelector('input[name="date"]');if(!di.value)di.value=getISTDate()}}
 
 function compressImg(dataUrl,maxW,quality,cb){var img=new Image();img.onload=function(){var w=img.width,h=img.height;if(w>maxW){h=Math.round(h*(maxW/w));w=maxW}var c=document.createElement('canvas');c.width=w;c.height=h;var ctx=c.getContext('2d');ctx.drawImage(img,0,0,w,h);cb(c.toDataURL('image/jpeg',quality))};img.src=dataUrl}
@@ -1081,7 +1092,7 @@ function animateCount(elId,target){
   requestAnimationFrame(step)}
 
 // Breadcrumb
-var TAB_NAMES={dashboard:'Dashboard',income:'Income',expense:'Expenses',donation:'Donations',records:'Records',analytics:'Analytics',backup:'Backup'};
+var TAB_NAMES={dashboard:'Dashboard',income:'Income',expense:'Expenses',donation:'Donations',records:'Records & Data',analytics:'Analytics'};
 function updateBreadcrumb(tab){
   var bcTab=document.getElementById('bcTab');var bcStats=document.getElementById('bcStats');
   if(bcTab)bcTab.textContent=TAB_NAMES[tab]||tab;
@@ -1193,7 +1204,7 @@ document.addEventListener('keydown',function(e){
     return}
   if(e.key==='/'){e.preventDefault();var si=document.getElementById('txSearch');if(si){sw('records');setTimeout(function(){si.focus()},100)}return}
   if(e.key==='n'||e.key==='N'){sw('income');return}
-  var tabKeys=['1','2','3','4','5','6','7'];var tabNames=['dashboard','income','expense','donation','records','analytics','backup'];
+  var tabKeys=['1','2','3','4','5','6'];var tabNames=['dashboard','income','expense','donation','records','analytics'];
   var ki=tabKeys.indexOf(e.key);if(ki!==-1){sw(tabNames[ki]);return}
 });
 
@@ -1215,6 +1226,10 @@ document.addEventListener('dblclick',function(e){
 // Search debounce
 var _searchTimer=null;
 function debounceSearch(){clearTimeout(_searchTimer);_searchTimer=setTimeout(function(){rR()},250)}
+
+// Backup section toggle
+function toggleBackupSection(){var s=document.getElementById('backupSection');var icon=document.getElementById('bkToggleIcon');
+  if(s.style.display==='none'){s.style.display='block';icon.style.transform='rotate(180deg)';uBk()}else{s.style.display='none';icon.style.transform='rotate(0deg)'}}
 
 // Sidebar toggle
 function toggleSidebar(){var sb=document.getElementById('sidebar');sb.classList.toggle('collapsed');S.set('rwa_sidebar',sb.classList.contains('collapsed')?'collapsed':'expanded')}
