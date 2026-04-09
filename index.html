@@ -391,6 +391,26 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--t);min-he
 .top-cat-amt{font-weight:700;font-family:'Playfair Display',serif;font-size:.85rem;flex-shrink:0;min-width:70px;text-align:right}
 .top-cats-empty{text-align:center;padding:16px;font-size:.8rem;color:var(--t2);opacity:.5}
 
+/* Activity Log */
+.log-item{display:flex;gap:12px;padding:12px 16px;border-left:3px solid var(--bd);margin-left:12px;position:relative}
+.log-item::before{content:'';position:absolute;left:-7px;top:16px;width:10px;height:10px;border-radius:50%;background:var(--bd)}
+.log-item.log-create::before{background:#2D8B4E}
+.log-item.log-edit::before{background:var(--a)}
+.log-item.log-delete::before{background:#C0392B}
+.log-item .log-content{flex:1;min-width:0}
+.log-item .log-action{font-size:.82rem;font-weight:600;color:var(--t)}
+.log-item .log-detail{font-size:.76rem;color:var(--t2);margin-top:2px;line-height:1.4}
+.log-item .log-time{font-size:.7rem;color:var(--t2);opacity:.7;flex-shrink:0;white-space:nowrap}
+.log-user-tag{font-size:.65rem;background:var(--ca);color:var(--t2);padding:1px 8px;border-radius:10px;font-weight:500;white-space:nowrap;display:inline-flex;align-items:center;gap:4px}
+.log-user-tag img{width:14px;height:14px;border-radius:50%}
+.log-filters{display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap}
+.audit-trail{margin-top:16px;border-top:1px solid var(--bd);padding-top:12px}
+.audit-trail h4{font-size:.78rem;font-weight:700;color:var(--t2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px}
+.audit-entry{font-size:.78rem;color:var(--t2);padding:6px 0;border-bottom:1px solid var(--bd);line-height:1.5}
+.audit-entry:last-child{border:none}
+.audit-entry strong{color:var(--t);font-weight:600}
+.audit-change{color:var(--a);font-style:italic}
+
 @media(max-width:800px){.form-page{grid-template-columns:1fr}.form-aside{display:none}}
 
 /* Custom Scrollbar */
@@ -524,6 +544,7 @@ html{scrollbar-color:var(--bd) var(--ca);scrollbar-width:thin}
     <div class="sidebar-sep"></div>
     <button class="tab" data-t="records" onclick="sw('records',this)"><span class="tab-icon">&#128203;</span><span class="tab-label">Records</span></button>
     <button class="tab" data-t="analytics" onclick="sw('analytics',this)"><span class="tab-icon">&#128200;</span><span class="tab-label">Analytics</span></button>
+    <button class="tab" data-t="activity" onclick="sw('activity',this)"><span class="tab-icon">&#128220;</span><span class="tab-label">Activity Log</span></button>
   </div>
   <div class="sidebar-footer"><div class="sidebar-footer-text">ADOWA Finance<br>Manager v2.0</div></div>
 </nav>
@@ -875,6 +896,23 @@ html{scrollbar-color:var(--bd) var(--ca);scrollbar-width:thin}
   </div>
 </div>
 
+<!-- ACTIVITY LOG PAGE -->
+<div class="tc" id="tab-activity">
+  <div class="form-header" style="background:linear-gradient(135deg,#3A3A50,#5A5A70);margin-top:20px">
+    <div class="fh-icon">&#128220;</div>
+    <div style="flex:1"><div class="fh-title">Activity Log</div><div class="fh-stat" id="logStat">All actions are tracked here</div></div>
+  </div>
+  <div class="fc" style="padding:16px 20px">
+    <div class="log-filters">
+      <button class="qf-pill on" onclick="filterLog('all',this)">All</button>
+      <button class="qf-pill" onclick="filterLog('create',this)">Created</button>
+      <button class="qf-pill" onclick="filterLog('edit',this)">Edited</button>
+      <button class="qf-pill" onclick="filterLog('delete',this)">Deleted</button>
+    </div>
+    <div id="activityList"></div>
+    <div id="logLoadMore" style="text-align:center;margin-top:12px;display:none"><button class="btn bo" onclick="loadMoreLogs()" style="width:100%">Load More</button></div>
+  </div>
+</div>
 
 </div>
 </div><!-- end app-layout -->
@@ -944,7 +982,9 @@ html{scrollbar-color:var(--bd) var(--ca);scrollbar-width:thin}
 
 <script>
 var _m={};var S={get:function(k){try{return localStorage.getItem(k)}catch(e){return _m[k]||null}},set:function(k,v){try{localStorage.setItem(k,String(v))}catch(e){}_m[k]=String(v)},del:function(k){try{localStorage.removeItem(k)}catch(e){}delete _m[k]}};
-var SK='rwa_data',OK='rwa_ob',BK='rwa_bk',GK='rwa_gs';
+var SK='rwa_data',OK='rwa_ob',BK='rwa_bk',GK='rwa_gs',LK='rwa_logs';
+function getAuthUser(){try{var a=JSON.parse(S.get('rwa_auth')||'{}');return{name:a.name||'Unknown',email:a.email||'',picture:a.picture||''}}catch(e){return{name:'Unknown',email:'',picture:''}}}
+function addLog(action,detail,txId){var logs=JSON.parse(S.get(LK)||'[]');var u=getAuthUser();logs.unshift({id:Date.now()+Math.random().toString(36).substr(2,4),action:action,detail:detail,txId:txId||'',user:u.name,email:u.email,picture:u.picture,at:new Date().toISOString()});if(logs.length>500)logs=logs.slice(0,500);S.set(LK,JSON.stringify(logs))}
 function ld(){try{return JSON.parse(S.get(SK))||[]}catch(e){return[]}}
 function sv(d){S.set(SK,JSON.stringify(d))}
 var TX=ld();var PH={income:[],expense:[],donation:[]};
@@ -963,7 +1003,7 @@ function sw(n,b){
   if(b)b.classList.add('on');else{var x=document.querySelector('.tab[data-t="'+n+'"]');if(x)x.classList.add('on')}
   window.scrollTo({top:0,behavior:'smooth'})
   updateBreadcrumb(n);
-  if(n==='dashboard')uD();if(n==='records'){rR();uBk()}if(n==='analytics')updAnalytics();
+  if(n==='dashboard')uD();if(n==='records'){rR();uBk()}if(n==='analytics')updAnalytics();if(n==='activity')renderActivityLog();
   if(n==='income'||n==='expense'||n==='donation'){var f=document.getElementById(n+'Form');var di=f.querySelector('input[name="date"]');if(!di.value)di.value=getISTDate();updateFormAside(n)}}
 
 function compressImg(dataUrl,maxW,quality,cb){var img=new Image();img.onload=function(){var w=img.width,h=img.height;if(w>maxW){h=Math.round(h*(maxW/w));w=maxW}var c=document.createElement('canvas');c.width=w;c.height=h;var ctx=c.getContext('2d');ctx.drawImage(img,0,0,w,h);cb(c.toDataURL('image/jpeg',quality))};img.src=dataUrl}
@@ -982,8 +1022,9 @@ if(!form.checkValidity()){form.reportValidity();return}
 
 var fd2=new FormData(form);var cat=fd2.get('category'),cs='';if(cat===OS[type]){cs=fd2.get('customSource')||'';if(cs.trim())cat='Other: '+cs.trim()}
 var mode=fd2.get('mode'),cm='';if(mode==='Other Mode'){cm=fd2.get('customMode')||'';if(cm.trim())mode=cm.trim()}
-var tx={id:Date.now()+Math.random().toString(36).substr(2,5),type:type,date:fd2.get('date'),amount:parseFloat(fd2.get('amount')),category:cat,customSource:cs,party:fd2.get('party')||'',mode:mode,customMode:cm,reference:fd2.get('reference')||'',description:fd2.get('description')||'',photos:PH[type].slice(),createdAt:new Date().toISOString()};
-TX.unshift(tx);sv(TX);gsAddTx(tx);form.reset();clr(type);uD();toast(type.charAt(0).toUpperCase()+type.slice(1)+' of '+fi(tx.amount)+' saved! \u2713')}
+var u=getAuthUser();
+var tx={id:Date.now()+Math.random().toString(36).substr(2,5),type:type,date:fd2.get('date'),amount:parseFloat(fd2.get('amount')),category:cat,customSource:cs,party:fd2.get('party')||'',mode:mode,customMode:cm,reference:fd2.get('reference')||'',description:fd2.get('description')||'',photos:PH[type].slice(),createdAt:new Date().toISOString(),createdBy:u.name,createdByEmail:u.email,createdByPic:u.picture,audit:[{action:'Created',by:u.name,email:u.email,at:new Date().toISOString()}]};
+TX.unshift(tx);sv(TX);gsAddTx(tx);addLog('create','Created '+type+' of '+fi(tx.amount)+' \u2014 '+cat,tx.id);form.reset();clr(type);uD();toast(type.charAt(0).toUpperCase()+type.slice(1)+' of '+fi(tx.amount)+' saved! \u2713')}
 
 function formatMonthYear(dateStr){return new Date(dateStr+'T00:00:00').toLocaleDateString('en-IN',{month:'long',year:'numeric'})}
 function getTodayLabel(){var now=new Date();var ist=new Date(now.getTime()+(330*60000));return ist.toLocaleDateString('en-IN',{day:'numeric',month:'long',year:'numeric'})}
@@ -1043,7 +1084,8 @@ function rTL(items,cid,grouped){var c=document.getElementById(cid);if(!items.len
   return}
 var h='',lastDate='';items.forEach(function(tx){
   if(grouped&&tx.date!==lastDate){lastDate=tx.date;h+='<div class="date-group-header"><div class="dg-dot"></div>'+getDateLabel(tx.date)+'</div>'}
-  h+='<div class="ti '+tx.type+'-card" onclick="sD(\''+tx.id+'\')" oncontextmenu="showCtx(event,\''+tx.id+'\')" data-txid="'+tx.id+'"><div class="tic '+tx.type+'">'+IC[tx.type]+'</div><div class="tid"><div class="tit">'+tx.category+(tx.party?' \u2014 '+tx.party:'')+'</div><div class="tim"><span>'+fd(tx.date)+'</span><span>'+tx.mode+'</span>'+(tx.photos&&tx.photos.length?'<span class="tip">\uD83D\uDCCE '+tx.photos.length+' proof</span>':'')+'</div></div><div class="tia '+tx.type+'">'+(tx.type==='income'?'+':'-')+fi(tx.amount)+'</div><div class="tx-actions" onclick="event.stopPropagation()"><button class="teb" onclick="eTx(\''+tx.id+'\')" title="Edit">&#9999;&#65039;</button><button class="tdb" onclick="dTx(\''+tx.id+'\')" title="Delete">\uD83D\uDDD1</button></div></div>'});c.innerHTML=h}
+  var userTag=tx.createdBy?'<span class="log-user-tag">'+(tx.createdByPic?'<img src="'+tx.createdByPic+'" alt="">':'')+tx.createdBy+'</span>':'';
+  h+='<div class="ti '+tx.type+'-card" onclick="sD(\''+tx.id+'\')" oncontextmenu="showCtx(event,\''+tx.id+'\')" data-txid="'+tx.id+'"><div class="tic '+tx.type+'">'+IC[tx.type]+'</div><div class="tid"><div class="tit">'+tx.category+(tx.party?' \u2014 '+tx.party:'')+'</div><div class="tim"><span>'+fd(tx.date)+'</span><span>'+tx.mode+'</span>'+userTag+(tx.photos&&tx.photos.length?'<span class="tip">\uD83D\uDCCE '+tx.photos.length+' proof</span>':'')+'</div></div><div class="tia '+tx.type+'">'+(tx.type==='income'?'+':'-')+fi(tx.amount)+'</div><div class="tx-actions" onclick="event.stopPropagation()"><button class="teb" onclick="eTx(\''+tx.id+'\')" title="Edit">&#9999;&#65039;</button><button class="tdb" onclick="dTx(\''+tx.id+'\')" title="Delete">\uD83D\uDDD1</button></div></div>'});c.innerHTML=h}
 
 var DM='none',PAGE_SIZE=20,_curPage=1,_filteredCache=[];
 function sdm(m,b){DM=m;document.querySelectorAll('#tab-records .db').forEach(function(x){x.classList.remove('on')});b.classList.add('on');
@@ -1076,6 +1118,12 @@ function sD(id){var tx=TX.find(function(t){return t.id===id});if(!tx)return;
 document.getElementById('mT').textContent=(tx.type==='income'?'\uD83D\uDCB0 Income':tx.type==='expense'?'\uD83D\uDCE4 Expense':'\uD83E\uDD32 Donation')+' Details';
 var h='<div class="dr"><span class="dl">Date</span><span class="dv">'+fd(tx.date)+'</span></div><div class="dr"><span class="dl">Amount</span><span class="dv" style="font-size:1.2rem;color:'+(tx.type==='income'?'var(--p)':'var(--r)')+'">'+fi(tx.amount)+'</span></div><div class="dr"><span class="dl">Category</span><span class="dv">'+tx.category+'</span></div><div class="dr"><span class="dl">'+(tx.type==='expense'?'Paid To':'From/To')+'</span><span class="dv">'+(tx.party||'\u2014')+'</span></div><div class="dr"><span class="dl">Mode</span><span class="dv">'+tx.mode+'</span></div><div class="dr"><span class="dl">Reference</span><span class="dv">'+(tx.reference||'\u2014')+'</span></div><div class="dr"><span class="dl">Notes</span><span class="dv">'+(tx.description||'\u2014')+'</span></div>';
 if(tx.photos&&tx.photos.length){h+='<div style="margin-top:16px"><strong style="font-size:.85rem;color:var(--t2)">\uD83D\uDCF8 PROOF</strong><div class="pg">';tx.photos.forEach(function(p){h+='<img src="'+p+'" class="pi" onclick="event.stopPropagation();oLB(this.src)">'});h+='</div></div>'}
+// Audit trail
+if(tx.audit&&tx.audit.length){h+='<div class="audit-trail"><h4>\uD83D\uDD12 Audit Trail</h4>';
+  tx.audit.forEach(function(a){h+='<div class="audit-entry"><strong>'+a.action+'</strong> by '+a.by+' \u2014 '+new Date(a.at).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'});
+    if(a.changes&&a.changes.length){h+='<br>';a.changes.forEach(function(c){h+='<span class="audit-change">\u2022 '+c+'</span><br>'})}
+    h+='</div>'});h+='</div>'}
+else if(tx.createdBy){h+='<div class="audit-trail"><h4>\uD83D\uDD12 Audit Trail</h4><div class="audit-entry"><strong>Created</strong> by '+tx.createdBy+' \u2014 '+new Date(tx.createdAt).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'})+'</div></div>'}
 document.getElementById('mB').innerHTML=h;document.getElementById('dM').classList.add('on')}
 function cM(){document.getElementById('dM').classList.remove('on')}
 function dTx(id){dTxUndo(id)}
@@ -1095,10 +1143,17 @@ function cancelEdit(){_editId=null;document.getElementById('editModal').classLis
 function saveEdit(){if(!_editId)return;var f=document.getElementById('editForm');
 var tx=TX.find(function(t){return t.id===_editId});if(!tx)return;
 var amt=parseFloat(document.getElementById('editAmount').value);if(!amt||amt<=0){toast('Enter valid amount');return}
-tx.date=document.getElementById('editDate').value;tx.amount=amt;
-tx.category=document.getElementById('editCategory').value;tx.party=document.getElementById('editParty').value;
-tx.mode=document.getElementById('editMode').value;tx.reference=document.getElementById('editRef').value;
+var u=getAuthUser();var changes=[];
+var nDate=document.getElementById('editDate').value;if(nDate!==tx.date)changes.push('Date: '+fd(tx.date)+' \u2192 '+fd(nDate));
+if(amt!==tx.amount)changes.push('Amount: '+fi(tx.amount)+' \u2192 '+fi(amt));
+var nCat=document.getElementById('editCategory').value;if(nCat!==tx.category)changes.push('Category: '+tx.category+' \u2192 '+nCat);
+var nParty=document.getElementById('editParty').value;if(nParty!==tx.party)changes.push('Party: '+(tx.party||'-')+' \u2192 '+(nParty||'-'));
+var nMode=document.getElementById('editMode').value;if(nMode!==tx.mode)changes.push('Mode: '+tx.mode+' \u2192 '+nMode);
+tx.date=nDate;tx.amount=amt;tx.category=nCat;tx.party=nParty;
+tx.mode=nMode;tx.reference=document.getElementById('editRef').value;
 tx.description=document.getElementById('editDesc').value;tx.updatedAt=new Date().toISOString();
+if(!tx.audit)tx.audit=[];tx.audit.push({action:'Edited',by:u.name,email:u.email,at:new Date().toISOString(),changes:changes});
+addLog('edit','Edited '+tx.type+' \u2014 '+(changes.length?changes.join(', '):'minor changes'),tx.id);
 sv(TX);uD();rR();cancelEdit();toast('Updated! \u2713')}
 
 function expXL(m){var data=m==='f'?gF():TX;if(!data.length){toast('No records!');return}
@@ -1508,7 +1563,7 @@ function animateCount(elId,target){
   requestAnimationFrame(step)}
 
 // Breadcrumb
-var TAB_NAMES={dashboard:'Dashboard',income:'Income',expense:'Expenses',donation:'Donations',records:'Records & Data',analytics:'Analytics'};
+var TAB_NAMES={dashboard:'Dashboard',income:'Income',expense:'Expenses',donation:'Donations',records:'Records & Data',analytics:'Analytics',activity:'Activity Log'};
 function updateBreadcrumb(tab){
   var bcTab=document.getElementById('bcTab');var bcStats=document.getElementById('bcStats');
   if(bcTab)bcTab.textContent=TAB_NAMES[tab]||tab;
@@ -1604,7 +1659,9 @@ document.addEventListener('click',function(){hideCtx()});
 var _undoTimer=null,_undoTx=null,_undoIdx=-1;
 function dTxUndo(id){
   var idx=TX.findIndex(function(t){return t.id===id});if(idx===-1)return;
+  var u=getAuthUser();var tx=TX[idx];
   _undoTx=TX[idx];_undoIdx=idx;TX.splice(idx,1);sv(TX);uD();rR();
+  addLog('delete','Deleted '+tx.type+' of '+fi(tx.amount)+' \u2014 '+tx.category+' (by '+u.name+')',id);
   if(_undoTimer)clearTimeout(_undoTimer);
   var existing=document.querySelector('.toast-undo');if(existing)existing.remove();
   var el=document.createElement('div');el.className='toast-undo';
@@ -1612,6 +1669,7 @@ function dTxUndo(id){
   document.body.appendChild(el);
   _undoTimer=setTimeout(function(){el.remove();gsDelTx(id);_undoTx=null;_undoTimer=null},5000)}
 function undoDelete(){if(!_undoTx)return;clearTimeout(_undoTimer);TX.splice(_undoIdx,0,_undoTx);sv(TX);uD();rR();
+  addLog('create','Restored '+_undoTx.type+' of '+fi(_undoTx.amount)+' (undo delete)',_undoTx.id);
   var el=document.querySelector('.toast-undo');if(el)el.remove();toast('Restored!');_undoTx=null;_undoTimer=null}
 
 // Enhanced drag-and-drop
@@ -1642,7 +1700,7 @@ document.addEventListener('keydown',function(e){
     return}
   if(e.key==='/'){e.preventDefault();var si=document.getElementById('txSearch');if(si){sw('records');setTimeout(function(){si.focus()},100)}return}
   if(e.key==='n'||e.key==='N'){sw('income');return}
-  var tabKeys=['1','2','3','4','5','6'];var tabNames=['dashboard','income','expense','donation','records','analytics'];
+  var tabKeys=['1','2','3','4','5','6','7'];var tabNames=['dashboard','income','expense','donation','records','analytics','activity'];
   var ki=tabKeys.indexOf(e.key);if(ki!==-1){sw(tabNames[ki]);return}
 });
 
@@ -1660,6 +1718,28 @@ document.addEventListener('dblclick',function(e){
   inp.addEventListener('blur',save);
   inp.addEventListener('keydown',function(ev){if(ev.key==='Enter'){ev.preventDefault();save()}if(ev.key==='Escape'){amtEl.textContent=origText}});
   e.stopPropagation()});
+
+// Activity Log rendering
+var _logFilter='all',_logPage=1,LOG_PAGE_SIZE=30;
+function filterLog(f,btn){_logFilter=f;_logPage=1;
+  document.querySelectorAll('#tab-activity .qf-pill').forEach(function(p){p.classList.remove('on')});btn.classList.add('on');renderActivityLog()}
+function loadMoreLogs(){_logPage++;renderActivityLog()}
+function renderActivityLog(){
+  var logs=JSON.parse(S.get(LK)||'[]');
+  if(_logFilter!=='all')logs=logs.filter(function(l){return l.action===_logFilter});
+  var el=document.getElementById('activityList');
+  var stat=document.getElementById('logStat');
+  if(stat)stat.textContent=logs.length+' actions recorded';
+  var show=logs.slice(0,_logPage*LOG_PAGE_SIZE);
+  var lm=document.getElementById('logLoadMore');if(lm)lm.style.display=logs.length>show.length?'block':'none';
+  if(!show.length){el.innerHTML='<div class="es"><div class="ei">\uD83D\uDCED</div><p>No activity yet.</p><p style="font-size:.8rem;margin-top:6px;opacity:.7">Actions will appear here as transactions are created, edited, or deleted.</p></div>';return}
+  el.innerHTML=show.map(function(l){
+    var cls=l.action==='create'?'log-create':l.action==='edit'?'log-edit':'log-delete';
+    var icon=l.action==='create'?'&#10003; Created':l.action==='edit'?'&#9999;&#65039; Edited':'&#128465; Deleted';
+    var time=new Date(l.at);
+    var timeStr=time.toLocaleDateString('en-IN',{day:'numeric',month:'short'})+' '+time.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
+    return'<div class="log-item '+cls+'"><div class="log-content"><div class="log-action">'+icon+' <span class="log-user-tag">'+(l.picture?'<img src="'+l.picture+'" alt="">':'')+l.user+'</span></div><div class="log-detail">'+l.detail+'</div></div><div class="log-time">'+timeStr+'</div></div>'
+  }).join('')}
 
 // Search debounce
 var _searchTimer=null;
