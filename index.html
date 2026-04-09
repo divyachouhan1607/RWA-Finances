@@ -329,6 +329,17 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--t);min-he
 .ra-amt.income{color:#2D8B4E} .ra-amt.expense{color:#C0392B} .ra-amt.donation{color:var(--b)}
 .ra-empty{text-align:center;padding:20px;font-size:.82rem;color:var(--t2);opacity:.6}
 
+/* Top categories table */
+.top-cats{font-size:.82rem}
+.top-cat-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--bd)}
+.top-cat-row:last-child{border:none}
+.top-cat-rank{width:20px;height:20px;border-radius:50%;background:var(--ca);font-size:.7rem;font-weight:700;display:flex;align-items:center;justify-content:center;color:var(--t2);flex-shrink:0}
+.top-cat-name{flex:1;font-weight:500;color:var(--t);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.top-cat-bar{width:60px;height:6px;background:var(--ca);border-radius:3px;overflow:hidden;flex-shrink:0}
+.top-cat-bar-fill{height:100%;border-radius:3px;transition:width .6s ease}
+.top-cat-amt{font-weight:700;font-family:'Playfair Display',serif;font-size:.85rem;flex-shrink:0;min-width:70px;text-align:right}
+.top-cats-empty{text-align:center;padding:16px;font-size:.8rem;color:var(--t2);opacity:.5}
+
 @media(max-width:800px){.form-page{grid-template-columns:1fr}.form-aside{display:none}}
 
 /* Custom Scrollbar */
@@ -716,50 +727,73 @@ html{scrollbar-color:var(--bd) var(--ca);scrollbar-width:thin}
 </div>
 
 <div class="tc" id="tab-analytics">
-  <div class="fc" style="padding:16px 20px;margin-top:20px">
-    <h2 style="font-family:'Playfair Display',serif;font-size:1.3rem;color:var(--p);margin-bottom:12px">&#128200; Analytics</h2>
-    <div class="dfs">
-      <div class="db-tabs" style="display:flex;gap:6px;flex-wrap:wrap">
+  <!-- Analytics Header -->
+  <div class="form-header" style="background:linear-gradient(135deg,#4A1520,#6B2A3A);margin-top:20px">
+    <div class="fh-icon">&#128200;</div>
+    <div style="flex:1"><div class="fh-title">Analytics</div><div class="fh-stat" id="analyticsStat">Financial insights at a glance</div></div>
+  </div>
+
+  <!-- Date Filter -->
+  <div class="fc" style="padding:14px 20px;margin-top:0">
+    <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+      <span style="font-size:.78rem;font-weight:700;color:var(--t2);text-transform:uppercase;letter-spacing:.5px">Period:</span>
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
         <button class="db on" onclick="setAM('none',this)">All Time</button>
         <button class="db" onclick="setAM('range',this)">&#128198; Date Range</button>
         <button class="db" onclick="setAM('month',this)">&#128467;&#65039; Month</button>
       </div>
-      <div id="aDateInputs">
-        <div id="aRangeWrap" class="di" style="display:none">
+      <div id="aDateInputs" style="display:flex;align-items:center;gap:8px">
+        <div id="aRangeWrap" class="di" style="display:none;margin-top:0">
           <label>From</label><input type="date" id="aDateFrom" onchange="updAnalytics()">
           <span class="date-arrow">&#10132;</span>
           <label>To</label><input type="date" id="aDateTo" onchange="updAnalytics()">
         </div>
-        <div id="aMonthWrap" class="di" style="display:none">
+        <div id="aMonthWrap" class="di" style="display:none;margin-top:0">
           <label>Month</label><input type="month" id="aMonth" onchange="updAnalytics()">
         </div>
       </div>
     </div>
   </div>
 
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:16px 0">
+  <!-- Summary Stats Row -->
+  <div class="dg" style="margin:16px 0">
+    <div class="sc in"><div class="sl">Total Income</div><div class="sv" id="aStatInc">&#8377;0</div></div>
+    <div class="sc ex"><div class="sl">Total Expenses</div><div class="sv" id="aStatExp">&#8377;0</div></div>
+    <div class="sc do"><div class="sl">Total Donations</div><div class="sv" id="aStatDon">&#8377;0</div></div>
+    <div class="sc ba"><div class="sl">Net Surplus</div><div class="sv" id="aStatNet">&#8377;0</div></div>
+  </div>
+
+  <!-- Monthly Trend (full width, prominent) -->
+  <div class="fc" style="padding:20px;margin-bottom:16px">
+    <h3 style="font-size:1rem;font-family:'Playfair Display',serif;color:var(--p);margin-bottom:4px">Monthly Trend</h3>
+    <p style="font-size:.75rem;color:var(--t2);margin-bottom:14px">Income vs Expenses vs Donations over time</p>
+    <div style="position:relative;height:300px"><canvas id="aMonthBar"></canvas></div>
+  </div>
+
+  <!-- Pie Charts Row: Income + Expense -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
     <div class="fc" style="padding:20px">
-      <h3 style="font-size:.95rem;color:var(--p);margin-bottom:4px">Income by Category</h3>
-      <p style="font-size:.75rem;color:var(--t2);margin-bottom:12px">Where your money comes from</p>
-      <div style="position:relative;height:240px"><canvas id="aIncPie"></canvas></div>
+      <h3 style="font-size:.95rem;color:#2D8B4E;margin-bottom:4px">Income by Category</h3>
+      <p style="font-size:.75rem;color:var(--t2);margin-bottom:14px">Where your money comes from</p>
+      <div style="position:relative;height:260px"><canvas id="aIncPie"></canvas></div>
+      <div id="aIncTop" style="margin-top:14px"></div>
     </div>
     <div class="fc" style="padding:20px">
-      <h3 style="font-size:.95rem;color:var(--r);margin-bottom:4px">Expenses by Category</h3>
-      <p style="font-size:.75rem;color:var(--t2);margin-bottom:12px">Where your money goes</p>
-      <div style="position:relative;height:240px"><canvas id="aExpPie"></canvas></div>
+      <h3 style="font-size:.95rem;color:#C0392B;margin-bottom:4px">Expenses by Category</h3>
+      <p style="font-size:.75rem;color:var(--t2);margin-bottom:14px">Where your money goes</p>
+      <div style="position:relative;height:260px"><canvas id="aExpPie"></canvas></div>
+      <div id="aExpTop" style="margin-top:14px"></div>
     </div>
   </div>
 
+  <!-- Donation Pie (centered) -->
   <div class="fc" style="padding:20px;margin-bottom:16px">
-    <h3 style="font-size:.95rem;color:var(--p);margin-bottom:4px">Donations by Category</h3>
-    <p style="font-size:.75rem;color:var(--t2);margin-bottom:12px">Donation &amp; charity breakdown</p>
-    <div style="max-width:400px;margin:0 auto"><div style="position:relative;height:240px"><canvas id="aDonPie"></canvas></div></div>
-  </div>
-
-  <div class="fc" style="padding:20px;margin-bottom:16px">
-    <h3 style="font-size:.95rem;color:var(--p);margin-bottom:4px">Monthly Income vs Expenses vs Donations</h3>
-    <p style="font-size:.75rem;color:var(--t2);margin-bottom:12px">Compare trends over time</p>
-    <div style="position:relative;height:280px"><canvas id="aMonthBar"></canvas></div>
+    <h3 style="font-size:.95rem;color:var(--b);margin-bottom:4px">Donations by Category</h3>
+    <p style="font-size:.75rem;color:var(--t2);margin-bottom:14px">Donation &amp; charity breakdown</p>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:center">
+      <div style="position:relative;height:260px"><canvas id="aDonPie"></canvas></div>
+      <div id="aDonTop"></div>
+    </div>
   </div>
 </div>
 
@@ -1343,12 +1377,34 @@ function getAnalyticsData(){
   return filtered
 }
 
+function buildTopCats(catData,color,maxItems){
+  if(!catData.labels.length)return'<div class="top-cats-empty">No data yet</div>';
+  var total=catData.data.reduce(function(s,v){return s+v},0);
+  var items=catData.labels.slice(0,maxItems||5);
+  return'<div class="top-cats">'+items.map(function(label,i){
+    var pct=total?Math.round(catData.data[i]/total*100):0;
+    return'<div class="top-cat-row"><div class="top-cat-rank">'+(i+1)+'</div><div class="top-cat-name">'+label+'</div><div class="top-cat-bar"><div class="top-cat-bar-fill" style="width:'+pct+'%;background:'+color+'"></div></div><div class="top-cat-amt" style="color:'+color+'">'+fi(catData.data[i])+'</div></div>'
+  }).join('')+'</div>'}
+
 function updAnalytics(){
   var data=getAnalyticsData();
   var inc=getCatData(data,'income');
   var exp=getCatData(data,'expense');
   var don=getCatData(data,'donation');
   var md=getMonthlyData(data);
+
+  // Summary stats
+  var tInc=inc.data.reduce(function(s,v){return s+v},0);
+  var tExp=exp.data.reduce(function(s,v){return s+v},0);
+  var tDon=don.data.reduce(function(s,v){return s+v},0);
+  var el;
+  el=document.getElementById('aStatInc');if(el)el.textContent=fi(tInc);
+  el=document.getElementById('aStatExp');if(el)el.textContent=fi(tExp);
+  el=document.getElementById('aStatDon');if(el)el.textContent=fi(tDon);
+  el=document.getElementById('aStatNet');if(el)el.textContent=fi(tInc+tDon-tExp);
+  el=document.getElementById('analyticsStat');if(el)el.textContent=data.length+' transactions \u00B7 Income: '+fi(tInc)+' \u00B7 Expenses: '+fi(tExp);
+
+  // Charts
   makePie('aIncPie',inc.labels,inc.data);
   makePie('aExpPie',exp.labels,exp.data);
   makePie('aDonPie',don.labels,don.data);
@@ -1356,7 +1412,12 @@ function updAnalytics(){
     {label:'Income',data:md.income,backgroundColor:'#2D8B4E',borderRadius:6},
     {label:'Expenses',data:md.expense,backgroundColor:'#C0392B',borderRadius:6},
     {label:'Donations',data:md.donation,backgroundColor:'#3B6B8A',borderRadius:6}
-  ])
+  ]);
+
+  // Top categories tables
+  el=document.getElementById('aIncTop');if(el)el.innerHTML=buildTopCats(inc,'#2D8B4E',5);
+  el=document.getElementById('aExpTop');if(el)el.innerHTML=buildTopCats(exp,'#C0392B',5);
+  el=document.getElementById('aDonTop');if(el)el.innerHTML=buildTopCats(don,'#3B6B8A',5);
 }
 
 // Animated counters
